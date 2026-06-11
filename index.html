@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoàng WEB</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'hw-bg': '#0c0f0f',
+            'hw-surface': '#1a1f1f',
+            'hw-surface-2': '#242b2b',
+            'hw-border': '#2a3333',
+            'hw-accent': '#4cf479',
+            'hw-accent-dim': '#3ccf64',
+            'hw-text': '#e8edeb',
+            'hw-text-dim': '#889696',
+            'hw-danger': '#f44c6e',
+          },
+        },
+      },
+    }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="styles/base.css">
+</head>
+<body class="bg-[#0c0f0f] text-[#e8edeb] font-sans">
+  <div id="app"></div>
+
+  <script type="module" src="scripts/storage.js"></script>
+  <script type="module" src="scripts/timer.js"></script>
+  <script type="module" src="scripts/ui.js"></script>
+  <script type="module" src="scripts/app.js" defer></script>
+</body>
+</html>

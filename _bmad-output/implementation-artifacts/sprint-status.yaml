@@ -1,0 +1,48 @@
+# generated: 2026-06-11T10:30:00
+# last_updated: 2026-06-11T10:30:00
+# project: web_xam
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created
+#   - in-progress: Developer actively working
+#   - review: Ready for code review
+#   - done: Story completed
+
+generated: 2026-06-11T10:30:00
+last_updated: 2026-06-11T10:45:00
+project: web_xam
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-project-scaffold-and-cloudflare-deploy: in-progress
+  1-2-navigation-system: review
+  1-3-dark-theme-and-glass-ui-system: review
+  1-4-responsive-layout-and-routing: review
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-weekly-compass-and-streak-counter: backlog
+  2-2-task-management-crud-and-3-states: backlog
+  2-3-dashboard-layout-assembly-and-progress-stats: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-morning-routine: backlog
+  3-2-focus-timer-pomodoro-25-5: backlog
+  3-3-reward-box: backlog
+  3-4-fab-mobile-pomodoro-quick-start: backlog
+  epic-3-retrospective: optional

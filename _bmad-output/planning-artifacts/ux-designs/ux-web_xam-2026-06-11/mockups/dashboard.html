@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "tertiary-fixed-dim": "#c8c6c5",
+                "surface-container-high": "#282a2b",
+                "surface-variant": "#333535",
+                "outline": "#859583",
+                "primary-fixed-dim": "#34e36a",
+                "on-error-container": "#ffdad6",
+                "primary-container": "#1ed760",
+                "on-surface": "#e2e2e2",
+                "on-secondary-container": "#bab8b7",
+                "primary-fixed": "#69ff89",
+                "tertiary": "#d9d7d6",
+                "on-primary-fixed-variant": "#00531f",
+                "on-primary-fixed": "#002108",
+                "inverse-primary": "#006e2c",
+                "error-container": "#93000a",
+                "surface-tint": "#34e36a",
+                "on-tertiary-fixed": "#1b1b1c",
+                "surface-dim": "#121414",
+                "outline-variant": "#3c4a3c",
+                "tertiary-fixed": "#e5e2e1",
+                "secondary": "#c8c6c5",
+                "on-surface-variant": "#bbcbb8",
+                "on-background": "#e2e2e2",
+                "secondary-fixed": "#e5e2e1",
+                "error": "#ffb4ab",
+                "surface": "#121414",
+                "on-secondary-fixed": "#1c1b1b",
+                "tertiary-container": "#bdbbba",
+                "surface-bright": "#37393a",
+                "on-secondary-fixed-variant": "#474646",
+                "surface-container-highest": "#333535",
+                "background": "#0c0f0f",
+                "surface-container": "#1e2020",
+                "on-primary": "#003913",
+                "on-tertiary-fixed-variant": "#474746",
+                "inverse-on-surface": "#2f3131",
+                "surface-container-low": "#1a1c1c",
+                "on-tertiary": "#303030",
+                "on-error": "#690005",
+                "primary": "#4cf479",
+                "inverse-surface": "#e2e2e2",
+                "surface-container-lowest": "#0c0f0f",
+                "secondary-container": "#4a4949",
+                "on-tertiary-container": "#4b4b4b",
+                "secondary-fixed-dim": "#c8c6c5",
+                "on-secondary": "#313030",
+                "on-primary-container": "#005721"
+        },
+        "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "md": "16px",
+                "sm": "8px",
+                "margin-desktop": "48px",
+                "base": "8px",
+                "xl": "32px",
+                "margin-mobile": "16px",
+                "gutter": "16px",
+                "lg": "24px",
+                "xs": "4px"
+        },
+        "fontFamily": {
+                "title-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-sm": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "label-xs": [
+                        "Inter"
+                ],
+                "display": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "title-sm": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-xs": [
+                        "10px",
+                        {
+                                "lineHeight": "12px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "display": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body {
+            background-color: #0c0f0f;
+            color: #e2e2e2;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(26, 28, 28, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(133, 149, 131, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .glass-card-high {
+            background: rgba(40, 42, 43, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .ambient-glow {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(76, 244, 121, 0.08) 0%, rgba(76, 244, 121, 0) 70%);
+            filter: blur(40px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .task-list-active {
+            border-left: 3px solid #4cf479;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        @media (min-width: 1024px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32 lg:pb-0 flex flex-col lg:flex-row relative">
+<!-- Ambient Glow Elements -->
+<div class="ambient-glow -top-20 -left-20 hidden lg:block"></div>
+<div class="ambient-glow top-1/4 -right-20" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 70%);"></div>
+<div class="ambient-glow bottom-0 left-1/3 hidden lg:block"></div>
+<!-- Desktop Sidebar -->
+<aside class="hidden lg:flex flex-col w-64 h-screen sticky top-0 bg-background/60 backdrop-blur-xl border-r border-white/5 p-lg z-50">
+<div class="flex items-center gap-md mb-xl">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30 shrink-0">
+<img alt="User Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtfMqYC5y0F9f-EFoHBPFHlHbQqSbsLvxGtDYuWiDx42D9VDSXYmibPxc3sGIgDbLzcu1R55XeLBqtYv2JU5mu7WTiFt5is7298ww3XrvT7QW_R1eFuoH16uX6MYz4Psvo8eHYrWtYrn9V9mr0q_81-2z3B6UPidtSDNcOd2BE_q_kQkXsVgah_WYOMskPW343bQDUpBRneNnN1NcfhxgAn0JmDw-GxnCsFJITDwrGMQCeQxiuLTKbfeF20QjlMFWIoONpKIPdbRML"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-background truncate">Chào Hoàng</h1>
+<p class="font-label-xs text-label-xs text-primary">Pro Plan</p>
+</div>
+</div>
+<nav class="flex flex-col gap-sm flex-grow">
+<a class="flex items-center gap-md p-md rounded glass-card-high text-primary font-bold" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-title-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-md rounded hover:bg-white/5 transition-colors text-on-surface-variant/80 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">sunny</span>
+<span class="font-title-sm">Morning</span>
+</a>
+<a class="flex items-center gap-md p-md rounded hover:bg-white/5 transition-colors text-on-surface-variant/80 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">timer</span>
+<span class="font-title-sm">Focus</span>
+</a>
+<a class="flex items-center gap-md p-md rounded hover:bg-white/5 transition-colors text-on-surface-variant/80 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-title-sm">Stats</span>
+</a>
+</nav>
+<div class="mt-auto pt-lg border-t border-white/5">
+<button class="w-full flex items-center gap-md p-md rounded hover:bg-white/5 transition-colors text-on-surface-variant/80 hover:text-on-surface">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-title-sm">Cài đặt</span>
+</button>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<div class="flex-grow flex flex-col relative z-10">
+<!-- Top App Bar (Mobile only) -->
+<header class="lg:hidden sticky top-0 w-full z-50 flex justify-between items-center px-margin-mobile py-lg bg-background/60 backdrop-blur-xl border-b border-white/5">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtfMqYC5y0F9f-EFoHBPFHlHbQqSbsLvxGtDYuWiDx42D9VDSXYmibPxc3sGIgDbLzcu1R55XeLBqtYv2JU5mu7WTiFt5is7298ww3XrvT7QW_R1eFuoH16uX6MYz4Psvo8eHYrWtYrn9V9mr0q_81-2z3B6UPidtSDNcOd2BE_q_kQkXsVgah_WYOMskPW343bQDUpBRneNnN1NcfhxgAn0JmDw-GxnCsFJITDwrGMQCeQxiuLTKbfeF20QjlMFWIoONpKIPdbRML"/>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-background">Chào Hoàng</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-primary">query_stats</span>
+</button>
+</header>
+<main class="px-margin-mobile lg:px-margin-desktop py-xl lg:py-margin-desktop flex flex-col gap-xl max-w-6xl mx-auto w-full">
+<!-- Dashboard Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
+<!-- Left Column: Primary Focus & Stats -->
+<div class="lg:col-span-8 flex flex-col gap-xl">
+<!-- Weekly Compass & Streak Hero -->
+<section class="relative overflow-hidden rounded-lg glass-card p-lg lg:p-xl border-white/10">
+<div class="absolute top-0 right-0 p-md lg:p-lg">
+<div class="flex flex-col items-end">
+<span class="font-label-xs text-label-xs text-primary uppercase tracking-widest opacity-80">STREAK</span>
+<span class="font-display text-display text-primary lg:text-4xl lg:leading-tight drop-shadow-[0_0_8px_rgba(76,244,121,0.4)]">Day 12</span>
+</div>
+</div>
+<div class="relative z-10">
+<h2 class="font-label-xs text-label-xs text-on-surface-variant mb-xs tracking-wider">WEEKLY COMPASS</h2>
+<p class="font-display text-display text-on-background mb-md max-w-[80%] lg:text-3xl lg:leading-snug">Hoàn thiện Prototype ứng dụng Productivity</p>
+<!-- Mini Stats Row -->
+<div class="flex flex-wrap gap-lg mt-xl">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant/70 uppercase">TASKS DONE</span>
+<span class="font-title-sm text-title-sm lg:text-xl">08</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant/70 uppercase">POMODOROS</span>
+<span class="font-title-sm text-title-sm lg:text-xl">14</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant/70 uppercase">FOCUS TIME</span>
+<span class="font-title-sm text-title-sm lg:text-xl">350m</span>
+</div>
+</div>
+</div>
+<!-- Atmospheric BG Element -->
+<div class="absolute -bottom-10 -right-10 w-60 h-60 bg-primary/15 blur-[60px] rounded-full"></div>
+</section>
+<!-- Tasks Section -->
+<section class="flex flex-col gap-md">
+<div class="flex justify-between items-end">
+<h2 class="font-headline-md text-headline-md lg:text-2xl">Tasks Today</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant/60">3 pending</span>
+</div>
+<div class="grid gap-sm">
+<!-- Doing State -->
+<div class="group flex items-center justify-between p-md lg:p-lg glass-card-high rounded-lg transition-all hover:bg-surface-container-highest/80 task-list-active">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+<div>
+<p class="font-title-sm text-title-sm lg:text-base text-on-background">Thiết kế UI Dashboard</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant/80">Đang thực hiện • 25m left</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary cursor-pointer transition-colors" data-icon="more_vert">more_vert</span>
+</div>
+<!-- Pending States -->
+<div class="group flex items-center justify-between p-md lg:p-lg glass-card rounded-lg transition-all hover:bg-surface-container-high/60">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant/60 text-3xl">radio_button_unchecked</span>
+<div>
+<p class="font-title-sm text-title-sm lg:text-base text-on-background">Review feedback khách hàng</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant/70">Ưu tiên cao</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary cursor-pointer transition-colors" data-icon="more_vert">more_vert</span>
+</div>
+<div class="group flex items-center justify-between p-md lg:p-lg glass-card rounded-lg transition-all hover:bg-surface-container-high/60">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant/60 text-3xl">radio_button_unchecked</span>
+<div>
+<p class="font-title-sm text-title-sm lg:text-base text-on-background">Họp team tuần</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant/70">14:00 - 15:00</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary cursor-pointer transition-colors" data-icon="more_vert">more_vert</span>
+</div>
+<!-- Done State -->
+<div class="group flex items-center justify-between p-md lg:p-lg bg-white/5 border border-white/5 rounded-lg transition-all opacity-40">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary/70 text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-title-sm text-title-sm lg:text-base text-on-background line-through">Lên kế hoạch nội dung Blog</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hoàn thành lúc 09:15</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Focus & Analytics -->
+<div class="lg:col-span-4 flex flex-col gap-xl">
+<!-- Pomodoro Start - Prominent on Desktop -->
+<section class="glass-card p-lg lg:p-xl rounded-lg flex flex-col items-center justify-center gap-lg text-center border-white/5">
+<div class="w-32 h-32 lg:w-48 lg:h-48 rounded-full border-4 border-primary/20 flex items-center justify-center relative shadow-[0_0_30px_rgba(76,244,121,0.1)]">
+<div class="absolute inset-0 border-t-4 border-primary rounded-full animate-spin [animation-duration:8s]"></div>
+<span class="material-symbols-outlined text-primary text-6xl lg:text-8xl drop-shadow-[0_0_15px_rgba(76,244,121,0.3)]">timer</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md mb-xs">Ready to Focus?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant/80 mb-lg">Start a 25-minute pomodoro session now.</p>
+<button class="bg-primary text-on-primary px-xl py-md rounded-full font-title-sm text-title-sm shadow-[0_12px_40px_rgba(76,244,121,0.3)] flex items-center justify-center gap-md active:scale-95 transition-all hover:brightness-110 w-full lg:w-auto mx-auto whitespace-nowrap">
+<span class="material-symbols-outlined">play_arrow</span>
+                            Bắt đầu Pomodoro
+                        </button>
+</div>
+</section>
+<!-- Stats Bento -->
+<div class="grid grid-cols-2 gap-gutter lg:flex lg:flex-col lg:gap-lg">
+<div class="glass-card border-white/5 p-lg rounded-lg flex flex-col justify-between aspect-square lg:aspect-auto lg:h-32 transition-transform hover:scale-[1.02]">
+<span class="material-symbols-outlined text-primary">timer</span>
+<div>
+<h3 class="font-label-xs text-label-xs text-on-surface-variant/70 uppercase">Total Focus</h3>
+<p class="font-display text-display text-on-background lg:text-3xl">5.8h</p>
+</div>
+</div>
+<div class="glass-card border-white/5 p-lg rounded-lg flex flex-col justify-between aspect-square lg:aspect-auto lg:h-32 transition-transform hover:scale-[1.02]">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+<div>
+<h3 class="font-label-xs text-label-xs text-on-surface-variant/70 uppercase">Efficiency</h3>
+<p class="font-display text-display text-on-background lg:text-3xl">92%</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Pill (Mobile Only) -->
+<div class="lg:hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-40">
+<button class="bg-primary text-on-primary px-xl py-md rounded-full font-title-sm text-title-sm shadow-[0_12px_40px_rgba(76,244,121,0.3)] flex items-center gap-md active:scale-95 hover:brightness-110 transition-all duration-200 whitespace-nowrap">
+<span class="material-symbols-outlined">timer</span>
+        Bắt đầu Pomodoro
+    </button>
+</div>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="lg:hidden fixed bottom-0 w-full flex justify-around items-center px-4 py-3 pb-safe bg-background/70 backdrop-blur-2xl z-50 border-t border-white/5">
+<a class="flex flex-col items-center justify-center text-primary font-bold transition-all duration-200" href="#">
+<span class="material-symbols-outlined drop-shadow-[0_0_10px_rgba(76,244,121,0.2)]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-xs text-label-xs mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">sunny</span>
+<span class="font-label-xs text-label-xs mt-1">Morning</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">timer</span>
+<span class="font-label-xs text-label-xs mt-1">Focus</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-xs text-label-xs mt-1">Stats</span>
+</a>
+</nav>
+<script>
+    // Simple scroll effect for the header
+    window.addEventListener('scroll', () => {
+        const header = document.querySelector('header');
+        if (window.scrollY > 20) {
+            header?.classList.add('bg-background/90', 'shadow-lg');
+            header?.classList.remove('bg-background/60');
+        } else {
+            header?.classList.add('bg-background/60');
+            header?.classList.remove('bg-background/90', 'shadow-lg');
+        }
+    });
+
+    // Toggle task completion visual (simulation)
+    document.querySelectorAll('.group').forEach(task => {
+        task.addEventListener('click', (e) => {
+            // Avoid triggering on more_vert
+            if (e.target.innerText === 'more_vert') return;
+            
+            const icon = task.querySelector('.material-symbols-outlined');
+            if(icon && (icon.innerText === 'radio_button_unchecked' || icon.innerText === 'check_circle')) {
+                if(icon.innerText === 'radio_button_unchecked') {
+                    icon.innerText = 'check_circle';
+                    icon.classList.add('text-primary');
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                    task.classList.add('opacity-40');
+                } else {
+                    icon.innerText = 'radio_button_unchecked';
+                    icon.classList.remove('text-primary');
+                    icon.style.fontVariationSettings = "";
+                    task.classList.remove('opacity-40');
+                }
+            }
+        });
+    });
+</script>
+</body></html>

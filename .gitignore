@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Editor temp files
+*~
+*.bak
+
+# Env
+.env
+.env.local
+
+# Logs
+*.log
