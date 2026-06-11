@@ -20,7 +20,7 @@
 #   - done: Story completed
 
 generated: 2026-06-11T10:30:00
-last_updated: 2026-06-11T10:45:00
+last_updated: 2026-06-11T11:00:00
 project: web_xam
 project_key: NOKEY
 tracking_system: file-system
@@ -34,15 +34,15 @@ development_status:
   1-4-responsive-layout-and-routing: review
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-weekly-compass-and-streak-counter: backlog
-  2-2-task-management-crud-and-3-states: backlog
-  2-3-dashboard-layout-assembly-and-progress-stats: backlog
+  epic-2: in-progress
+  2-1-weekly-compass-and-streak-counter: review
+  2-2-task-management-crud-and-3-states: review
+  2-3-dashboard-layout-assembly-and-progress-stats: review
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-morning-routine: backlog
-  3-2-focus-timer-pomodoro-25-5: backlog
-  3-3-reward-box: backlog
-  3-4-fab-mobile-pomodoro-quick-start: backlog
+  epic-3: in-progress
+  3-1-morning-routine: in-review
+  3-2-focus-timer-pomodoro-25-5: in-review
+  3-3-reward-box: in-review
+  3-4-fab-mobile-pomodoro-quick-start: in-review
   epic-3-retrospective: optional
