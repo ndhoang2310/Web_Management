@@ -1,7 +1,8 @@
 import {
   renderLayout, renderViewPlaceholder, updateActiveNav, renderDashboard,
   renderMorningView, renderFocusView, renderFAB, renderRewardBox,
-  updateTimerDisplay, updateFocusStats
+  updateTimerDisplay, updateFocusStats, updateFocusRoundInfo,
+  hideFocusRoundInfo, showFocusError, hideFocusError
 } from './ui.js'
 import {
   getWeeklyGoal, getStreak, getTodayTasks, getTodayStats,
@@ -9,9 +10,10 @@ import {
   checkWeekReset, updateStreak,
   getMorningSettings, saveMorningSettings,
   getRewardLink, setRewardLink,
-  addPomodoro
+  addPomodoro, getFocusConfig, saveFocusConfig,
+  getData, saveData
 } from './storage.js'
-import { createTimer, formatTime } from './timer.js'
+import { createTimer, createSequentialTimer, formatTime } from './timer.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   renderLayout()
@@ -63,7 +65,7 @@ function wireFAB() {
   document.addEventListener('click', e => {
     if (e.target.id === 'fab-pomodoro') {
       navigate('focus')
-      setTimeout(startFocusTimer, 100)
+      setTimeout(startFocusFromOutside, 100)
     }
   })
 }
@@ -138,7 +140,7 @@ function wireDashboard() {
   const ctaBtn = document.getElementById('btn-pomodoro-cta')
   if (ctaBtn) ctaBtn.addEventListener('click', () => {
     navigate('focus')
-    setTimeout(startFocusTimer, 100)
+    setTimeout(startFocusFromOutside, 100)
   })
 }
 
@@ -271,6 +273,22 @@ function renderMorningViewFn() {
 function wireMorningView() {
   const startBtn = document.getElementById('btn-morning-start')
   const stopBtn = document.getElementById('btn-morning-stop')
+  const timeSelect = document.getElementById('morning-time-select')
+
+  if (timeSelect) {
+    timeSelect.addEventListener('change', e => {
+      const val = parseInt(e.target.value)
+      const settings = getMorningSettings()
+      settings.timerMinutes = val
+      saveMorningSettings(settings)
+      if (morningTimer.isRunning()) {
+        morningTimer.stop()
+        morningTimer.start(val * 60)
+      } else {
+        updateTimerDisplay('morning-time', `${String(val).padStart(2, '0')}:00`)
+      }
+    })
+  }
 
   document.getElementById('spotify-input').addEventListener('change', e => {
     const val = e.target.value.trim()
@@ -370,31 +388,60 @@ function wireMorningTaskCapture() {
   })
 }
 
-/* ── Focus Timer ── */
+/* ── Focus Timer — Sequential Pomodoro ── */
 
-let focusPhase = 'focus' // 'focus' | 'break'
-let focusTimer = createTimer(
-  (time) => updateTimerDisplay('focus-time', time),
-  onFocusComplete
+let sequentialTimer = createSequentialTimer(
+  // onFocusTick
+  (time) => { updateTimerDisplay('focus-time', time) },
+  // onBreakTick
+  (time) => { updateTimerDisplay('focus-time', time) },
+  // onRoundChange
+  (current, total, phase, minutes) => {
+    updateFocusRoundInfo(current, total, phase, minutes)
+  },
+  // onSessionComplete
+  () => {
+    const start = document.getElementById('btn-focus-start')
+    const pause = document.getElementById('btn-focus-pause')
+    const stop = document.getElementById('btn-focus-stop')
+    if (start) { start.classList.remove('hidden'); start.textContent = 'Bắt đầu' }
+    if (pause) pause.classList.add('hidden')
+    if (stop) stop.classList.add('hidden')
+    hideFocusRoundInfo()
+    const e = document.getElementById('focus-phase-label')
+    if (e) e.textContent = 'FOCUS'
+    updateTimerDisplay('focus-time', '25:00')
+    const config = getFocusConfig()
+    const input = document.getElementById('focus-total-input')
+    if (input) input.value = config.totalMinutes
+    const errEl = document.getElementById('focus-error')
+    if (errEl) errEl.style.display = 'none'
+
+    const state = sequentialTimer.getState()
+    const totalPomodoros = state.fullRounds + (state.lastFocus >= 25 ? 1 : 0)
+    const totalFocusMin = state.fullRounds * 25 + state.lastFocus
+    for (let i = 0; i < totalPomodoros; i++) {
+      addPomodoro(25)
+    }
+    if (state.lastFocus > 0 && state.lastFocus < 25) {
+      const d = getData()
+      const t = new Date().toISOString().split('T')[0]
+      d.focusTime[t] = (d.focusTime[t] || 0) + state.lastFocus
+      saveData(d)
+    }
+    const stats = getTodayStats()
+    updateFocusStats(stats.pomodoros, stats.focusTime)
+
+    alert('Hoàn thành toàn bộ session! 🎉')
+  }
 )
 
 function renderFocusViewFn() {
   const section = document.getElementById('view-focus')
-  section.innerHTML = renderFocusView()
+  const config = getFocusConfig()
+  section.innerHTML = renderFocusView(config)
   const stats = getTodayStats()
   updateFocusStats(stats.pomodoros, stats.focusTime)
-
-  if (focusTimer.isRunning()) {
-    updateTimerDisplay('focus-time', formatTime(focusTimer.getRemaining()))
-    document.getElementById('btn-focus-start').classList.add('hidden')
-    document.getElementById('btn-focus-pause').classList.remove('hidden')
-    document.getElementById('btn-focus-stop').classList.remove('hidden')
-    document.getElementById('focus-phase-label').textContent = focusPhase === 'focus' ? 'FOCUS' : 'BREAK'
-  } else if (focusPhase === 'break') {
-    updateTimerDisplay('focus-time', '5:00')
-    document.getElementById('focus-phase-label').textContent = 'BREAK'
-  }
-
   wireFocusView()
 }
 
@@ -402,75 +449,83 @@ function wireFocusView() {
   const start = document.getElementById('btn-focus-start')
   const pause = document.getElementById('btn-focus-pause')
   const stop = document.getElementById('btn-focus-stop')
+  const input = document.getElementById('focus-total-input')
 
-  start.addEventListener('click', () => startFocusTimer())
+  if (input) {
+    input.addEventListener('change', () => {
+      const val = parseInt(input.value)
+      if (val >= 25) {
+        hideFocusError()
+        saveFocusConfig({ totalMinutes: val })
+      } else {
+        showFocusError('Tối thiểu 25 phút')
+      }
+    })
+  }
+
+  start.addEventListener('click', () => startSequentialTimer())
   pause.addEventListener('click', () => {
-    if (focusTimer.isRunning()) {
-      focusTimer.pause()
+    if (sequentialTimer.getState().isRunning) {
+      sequentialTimer.pause()
       start.textContent = 'Tiếp tục'
       start.classList.remove('hidden')
       pause.classList.add('hidden')
     }
   })
   stop.addEventListener('click', () => {
-    focusTimer.stop()
-    focusPhase = 'focus'
+    sequentialTimer.stop()
+    hideFocusRoundInfo()
+    const e = document.getElementById('focus-phase-label')
+    if (e) e.textContent = 'FOCUS'
     updateTimerDisplay('focus-time', '25:00')
-    document.getElementById('focus-phase-label').textContent = 'FOCUS'
     start.textContent = 'Bắt đầu'
     start.classList.remove('hidden')
     pause.classList.add('hidden')
     stop.classList.add('hidden')
+    hideFocusError()
+    const config = getFocusConfig()
+    if (input) input.value = config.totalMinutes
   })
 }
 
-function startFocusTimer() {
+function startSequentialTimer() {
   const start = document.getElementById('btn-focus-start')
   const pause = document.getElementById('btn-focus-pause')
   const stop = document.getElementById('btn-focus-stop')
-
-  if (focusTimer.isRunning()) return
+  const input = document.getElementById('focus-total-input')
+  const config = getFocusConfig()
 
   if (start.textContent === 'Tiếp tục') {
-    focusTimer.resume()
+    sequentialTimer.resume()
     start.classList.add('hidden')
     pause.classList.remove('hidden')
-    stop.classList.remove('hidden')
     return
   }
 
-  const seconds = focusPhase === 'focus' ? 25 * 60 : 5 * 60
-  updateTimerDisplay('focus-time', focusPhase === 'focus' ? '25:00' : '5:00')
-  document.getElementById('focus-phase-label').textContent = focusPhase === 'focus' ? 'FOCUS' : 'BREAK'
+  const total = config.totalMinutes
+  if (total < 25) {
+    showFocusError('Tối thiểu 25 phút')
+    return
+  }
+  hideFocusError()
 
-  focusTimer.start(seconds)
+  document.getElementById('focus-phase-label').textContent = 'FOCUS'
+  sequentialTimer.start(total)
   start.classList.add('hidden')
   pause.classList.remove('hidden')
   stop.classList.remove('hidden')
 }
 
-function onFocusComplete() {
+// Quick start from FAB or Dashboard CTA
+function startFocusFromOutside() {
+  const config = getFocusConfig()
+  document.getElementById('focus-phase-label').textContent = 'FOCUS'
+  sequentialTimer.start(config.totalMinutes)
+
   const start = document.getElementById('btn-focus-start')
   const pause = document.getElementById('btn-focus-pause')
   const stop = document.getElementById('btn-focus-stop')
-  if (start) start.classList.remove('hidden')
-  if (pause) pause.classList.add('hidden')
-  if (stop) stop.classList.add('hidden')
-
-  if (focusPhase === 'focus') {
-    addPomodoro()
-    const stats = getTodayStats()
-    updateFocusStats(stats.pomodoros, stats.focusTime)
-    alert('Đứng dậy, vươn vai, uống nước!')
-    focusPhase = 'break'
-    updateTimerDisplay('focus-time', '5:00')
-    document.getElementById('focus-phase-label').textContent = 'BREAK'
-    start.textContent = 'Bắt đầu'
-  } else {
-    alert('Tiếp tục focus nào!')
-    focusPhase = 'focus'
-    updateTimerDisplay('focus-time', '25:00')
-    document.getElementById('focus-phase-label').textContent = 'FOCUS'
-    start.textContent = 'Bắt đầu'
-  }
+  if (start) start.classList.add('hidden')
+  if (pause) pause.classList.remove('hidden')
+  if (stop) stop.classList.remove('hidden')
 }

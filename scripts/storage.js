@@ -110,11 +110,21 @@ export function getTodayStats() {
   }
 }
 
-export function addPomodoro() {
+export function addPomodoro(minutes) {
   const d = getData()
   const t = todayStr()
   d.pomodoros[t] = (d.pomodoros[t] || 0) + 1
-  d.focusTime[t] = (d.focusTime[t] || 0) + 25
+  d.focusTime[t] = (d.focusTime[t] || 0) + (minutes || 25)
+  saveData(d)
+}
+
+export function getFocusConfig() {
+  return getData().focusConfig || { totalMinutes: 60 }
+}
+
+export function saveFocusConfig(config) {
+  const d = getData()
+  d.focusConfig = config
   saveData(d)
 }
 

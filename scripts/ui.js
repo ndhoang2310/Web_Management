@@ -263,11 +263,20 @@ function renderStatsPanel(stats) {
 }
 
 export function renderMorningView(settings) {
+  const options = [5, 10, 15, 20, 30, 45, 60].map(m =>
+    `<option value="${m}" ${settings.timerMinutes === m ? 'selected' : ''}>${m} phút</option>`
+  ).join('')
   return `
     <div class="max-w-xl mx-auto space-y-6 pt-4" id="morning-content">
       <div class="glass-card p-8 text-center" id="morning-timer-card">
         <div class="w-40 h-40 mx-auto rounded-full flex items-center justify-center mb-6" style="border: 4px solid rgba(76,244,121,0.12)">
           <span id="morning-time" class="hw-display" style="font-size: 36px; color: #4cf479">${String(settings.timerMinutes).padStart(2, '0')}:00</span>
+        </div>
+        <div class="mb-4">
+          <label class="hw-caption" style="color: #889696; display: block; margin-bottom: 8px">THỜI GIAN</label>
+          <select id="morning-time-select" class="px-4 py-2 rounded-lg bg-[#1a1c1c] border border-[#2a3333] text-[#e2e2e2] hw-body outline-none focus:border-[#4cf479] transition-colors cursor-pointer">
+            ${options}
+          </select>
         </div>
         <button id="btn-morning-start" class="px-10 py-3 rounded-full bg-[#4cf479] text-[#003913] font-bold shadow-[0_12px_40px_rgba(76,244,121,0.3)] cursor-pointer transition-all hover:brightness-110 active:scale-95">
           Bắt đầu buổi sáng
@@ -288,14 +297,23 @@ export function renderMorningView(settings) {
   `
 }
 
-export function renderFocusView() {
+export function renderFocusView(config) {
   return `
     <div class="max-w-xl mx-auto space-y-6 pt-4" id="focus-content">
       <div class="glass-card p-8 text-center">
         <div class="w-48 h-48 mx-auto rounded-full flex items-center justify-center mb-6" style="border: 4px solid rgba(76,244,121,0.12)">
           <span id="focus-time" class="hw-display" style="font-size: 42px; color: #4cf479">25:00</span>
         </div>
-        <div class="hw-caption mb-4" id="focus-phase-label" style="color: #889696; text-transform: uppercase">FOCUS</div>
+        <div class="hw-caption mb-2" id="focus-phase-label" style="color: #889696; text-transform: uppercase">FOCUS</div>
+        <div class="hw-body mb-4" id="focus-round-info" style="color: #4cf479; display: none"></div>
+        <div class="mb-4">
+          <label class="hw-caption" style="color: #889696; display: block; margin-bottom: 8px">TỔNG THỜI GIAN TẬP TRUNG</label>
+          <div class="flex items-center justify-center gap-2">
+            <input id="focus-total-input" type="number" min="25" max="480" value="${config.totalMinutes}" class="w-20 px-3 py-2 rounded-lg bg-[#1a1c1c] border border-[#2a3333] text-[#e2e2e2] hw-body text-center outline-none focus:border-[#4cf479] transition-colors">
+            <span class="hw-caption" style="color: #889696">phút</span>
+          </div>
+          <div id="focus-error" class="hw-caption mt-2" style="color: #f3727f; display: none">Tối thiểu 25 phút</div>
+        </div>
         <div class="flex justify-center gap-3">
           <button id="btn-focus-start" class="px-10 py-3 rounded-full bg-[#4cf479] text-[#003913] font-bold shadow-[0_12px_40px_rgba(76,244,121,0.3)] cursor-pointer transition-all hover:brightness-110 active:scale-95">Bắt đầu</button>
           <button id="btn-focus-pause" class="px-6 py-3 rounded-full cursor-pointer transition-all hover:brightness-110 hidden" style="border: 1px solid rgba(133,149,131,0.3); color: #bbcbb8">Tạm dừng</button>
@@ -346,4 +364,31 @@ export function updateFocusStats(pomodoros, minutes) {
   const m = document.getElementById('today-focus-minutes')
   if (p) p.textContent = pomodoros
   if (m) m.textContent = minutes
+}
+
+export function updateFocusRoundInfo(current, total, phase, minutes) {
+  const info = document.getElementById('focus-round-info')
+  const label = document.getElementById('focus-phase-label')
+  if (info) {
+    info.style.display = 'block'
+    info.textContent = `Round ${current}/${total}`
+  }
+  if (label) {
+    label.textContent = phase === 'focus' ? `FOCUS ${minutes}:00` : `BREAK ${minutes}:00`
+  }
+}
+
+export function hideFocusRoundInfo() {
+  const info = document.getElementById('focus-round-info')
+  if (info) info.style.display = 'none'
+}
+
+export function showFocusError(msg) {
+  const err = document.getElementById('focus-error')
+  if (err) { err.textContent = msg; err.style.display = 'block' }
+}
+
+export function hideFocusError() {
+  const err = document.getElementById('focus-error')
+  if (err) err.style.display = 'none'
 }
