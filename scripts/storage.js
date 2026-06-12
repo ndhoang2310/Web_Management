@@ -148,6 +148,124 @@ export function setRewardLink(url) {
   saveData(d)
 }
 
+export function getWeekStats() {
+  const d = getData()
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7))
+  monday.setHours(0, 0, 0, 0)
+
+  const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+  const result = []
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + i)
+    const dateStr = date.toISOString().split('T')[0]
+    const tasksDone = d.tasks.filter(t => t.createdAt && t.createdAt.startsWith(dateStr) && t.state === 'done').length
+    const pomodoros = Number(d.pomodoros[dateStr]) || 0
+    const focusTime = Number(d.focusTime[dateStr]) || 0
+    result.push({ day: dateStr, label: days[i], tasksDone, pomodoros, focusTime })
+  }
+
+  return result
+}
+
+export function getMonthStats() {
+  const d = getData()
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`
+
+  let tasksDone = 0
+  let pomodoros = 0
+  let focusTime = 0
+  const activeDays = new Set()
+
+  for (const task of d.tasks) {
+    if (task.createdAt && task.createdAt.startsWith(monthPrefix) && task.state === 'done') {
+      tasksDone++
+      activeDays.add(task.createdAt.slice(0, 10))
+    }
+  }
+
+  for (const [date, count] of Object.entries(d.pomodoros)) {
+    if (date.startsWith(monthPrefix)) {
+      pomodoros += Number(count) || 0
+      if (count > 0) activeDays.add(date)
+    }
+  }
+
+  for (const [date, mins] of Object.entries(d.focusTime)) {
+    if (date.startsWith(monthPrefix)) {
+      focusTime += Number(mins) || 0
+      if (mins > 0) activeDays.add(date)
+    }
+  }
+
+  return { tasksDone, pomodoros, focusTime, totalDays: activeDays.size }
+}
+
+export function getMonthWeekStats() {
+  const d = getData()
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`
+
+  const weeks = []
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+
+  let currentWeekStart = new Date(firstDay)
+  currentWeekStart.setDate(firstDay.getDate() - ((firstDay.getDay() + 6) % 7))
+
+  while (currentWeekStart <= lastDay) {
+    let tasksDone = 0
+    let pomodoros = 0
+    let focusTime = 0
+
+    const weekEnd = new Date(currentWeekStart)
+    weekEnd.setDate(currentWeekStart.getDate() + 6)
+
+    for (const task of d.tasks) {
+      const taskDate = task.createdAt ? task.createdAt.slice(0, 10) : ''
+      if (taskDate >= currentWeekStart.toISOString().split('T')[0] &&
+          taskDate <= weekEnd.toISOString().split('T')[0] &&
+          task.state === 'done') {
+        tasksDone++
+      }
+    }
+
+    for (const [date, count] of Object.entries(d.pomodoros)) {
+      if (date >= currentWeekStart.toISOString().split('T')[0] &&
+          date <= weekEnd.toISOString().split('T')[0]) {
+        pomodoros += Number(count) || 0
+      }
+    }
+
+    for (const [date, mins] of Object.entries(d.focusTime)) {
+      if (date >= currentWeekStart.toISOString().split('T')[0] &&
+          date <= weekEnd.toISOString().split('T')[0]) {
+        focusTime += Number(mins) || 0
+      }
+    }
+
+    const startMonth = currentWeekStart.getMonth() + 1
+    const endMonth = weekEnd.getMonth() + 1
+    const startLabel = `${currentWeekStart.getDate()}/${startMonth}`
+    const endLabel = `${weekEnd.getDate()}/${endMonth}`
+    const weekLabel = `${startLabel} - ${endLabel}`
+    weeks.push({ label: weekLabel, tasksDone, pomodoros, focusTime })
+
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7)
+  }
+
+  return weeks
+}
+
 function isoWeek(date) {
   const d = new Date(date); d.setHours(0,0,0,0); d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7)
   const w1 = new Date(d.getFullYear(), 0, 4)

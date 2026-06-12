@@ -1,6 +1,7 @@
 import {
   renderLayout, renderViewPlaceholder, updateActiveNav, renderDashboard,
   renderMorningView, renderFocusView, renderFAB, renderRewardBox,
+  renderStatsView, initStatsChart,
   updateTimerDisplay, updateFocusStats, updateFocusRoundInfo,
   hideFocusRoundInfo, showFocusError, hideFocusError
 } from './ui.js'
@@ -11,6 +12,7 @@ import {
   getMorningSettings, saveMorningSettings,
   getRewardLink, setRewardLink,
   addPomodoro, getFocusConfig, saveFocusConfig,
+  getWeekStats, getMonthStats, getMonthWeekStats,
   getData, saveData
 } from './storage.js'
 import { createTimer, createSequentialTimer, formatTime } from './timer.js'
@@ -32,6 +34,8 @@ function renderView(viewId) {
     renderMorningViewFn()
   } else if (viewId === 'focus') {
     renderFocusViewFn()
+  } else if (viewId === 'stats') {
+    renderStatsViewFn()
   } else {
     const section = document.getElementById(`view-${viewId}`)
     if (section && !section.children.length) {
@@ -528,4 +532,39 @@ function startFocusFromOutside() {
   if (start) start.classList.add('hidden')
   if (pause) pause.classList.remove('hidden')
   if (stop) stop.classList.remove('hidden')
+}
+
+/* ── Stats View ── */
+
+let statsChart = null
+let statsMode = 'today'
+
+function renderStatsViewFn() {
+  const section = document.getElementById('view-stats')
+  const weekData = getWeekStats()
+  const todayData = getTodayStats()
+  const monthData = getMonthStats()
+  const monthWeekData = getMonthWeekStats()
+
+  if (statsChart) {
+    statsChart.destroy()
+    statsChart = null
+  }
+
+  section.innerHTML = renderStatsView(statsMode, weekData, todayData, monthData, monthWeekData)
+  wireStatsView()
+
+  if (statsMode !== 'today') {
+    const chartData = statsMode === 'week' ? weekData : monthWeekData
+    statsChart = initStatsChart(chartData)
+  }
+}
+
+function wireStatsView() {
+  document.querySelectorAll('.stats-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      statsMode = btn.dataset.mode
+      renderStatsViewFn()
+    })
+  })
 }

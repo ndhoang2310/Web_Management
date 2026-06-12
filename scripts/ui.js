@@ -96,6 +96,193 @@ function renderViews() {
   `
 }
 
+export function renderStatsView(mode, weekData, todayData, monthData, monthWeekData) {
+  const modes = [
+    { id: 'today', label: 'Hôm nay' },
+    { id: 'week', label: 'Tuần này' },
+    { id: 'month', label: 'Tháng này' },
+  ]
+
+  const selectorHtml = modes.map(m => `
+    <button class="stats-mode-btn px-6 py-2 rounded-full font-bold cursor-pointer transition-all hover:brightness-110 active:scale-95"
+      data-mode="${m.id}"
+      style="${mode === m.id ? 'background: #4cf479; color: #003913; box-shadow: 0 4px 16px rgba(76,244,121,0.25)' : 'background: rgba(30,32,32,0.45); border: 1px solid rgba(133,149,131,0.15); color: #889696'}">
+      ${m.label}
+    </button>
+  `).join('')
+
+  let contentHtml = ''
+
+  if (mode === 'today') {
+    contentHtml = `
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+        <div class="glass-card p-6 text-center">
+          <span class="material-symbols-outlined" style="font-size: 36px; color: #4cf479">check_circle</span>
+          <div class="hw-display mt-3" style="color: #e2e2e2; font-size: 40px">${todayData.tasksDone}</div>
+          <div class="hw-label mt-1" style="color: #889696">Tasks Done</div>
+        </div>
+        <div class="glass-card p-6 text-center">
+          <span class="material-symbols-outlined" style="font-size: 36px; color: #ffa42b">timer</span>
+          <div class="hw-display mt-3" style="color: #e2e2e2; font-size: 40px">${todayData.pomodoros}</div>
+          <div class="hw-label mt-1" style="color: #889696">Pomodoros</div>
+        </div>
+        <div class="glass-card p-6 text-center">
+          <span class="material-symbols-outlined" style="font-size: 36px; color: #539df5">schedule</span>
+          <div class="hw-display mt-3" style="color: #e2e2e2; font-size: 40px">${todayData.focusTime}<span style="font-size: 18px; color: #889696">m</span></div>
+          <div class="hw-label mt-1" style="color: #889696">Focus Time</div>
+        </div>
+      </div>
+    `
+  } else {
+    const chartData = mode === 'week' ? weekData : monthWeekData
+
+    const summaryHtml = mode === 'month'
+      ? renderMonthSummary(monthData)
+      : renderWeekSummary(weekData)
+
+    contentHtml = `
+      <div class="glass-card p-6 mt-6">
+        <div style="height: 300px">
+          <canvas id="stats-chart"></canvas>
+        </div>
+      </div>
+      ${summaryHtml}
+    `
+  }
+
+  return `
+    <div class="max-w-3xl mx-auto space-y-4 pt-4" id="stats-content">
+      <div class="flex items-center justify-between">
+        <h2 class="hw-headline" style="color: #e2e2e2">Thống kê</h2>
+        <div class="flex gap-2">${selectorHtml}</div>
+      </div>
+      ${contentHtml}
+    </div>
+  `
+}
+
+function renderWeekSummary(weekData) {
+  const total = weekData.reduce((acc, d) => ({
+    tasksDone: acc.tasksDone + d.tasksDone,
+    pomodoros: acc.pomodoros + d.pomodoros,
+    focusTime: acc.focusTime + d.focusTime,
+  }), { tasksDone: 0, pomodoros: 0, focusTime: 0 })
+
+  return `
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+      <div class="glass-card p-4 text-center">
+        <div class="hw-title" style="color: #4cf479">${total.tasksDone}</div>
+        <div class="hw-caption mt-1" style="color: #889696">Tasks tuần</div>
+      </div>
+      <div class="glass-card p-4 text-center">
+        <div class="hw-title" style="color: #ffa42b">${total.pomodoros}</div>
+        <div class="hw-caption mt-1" style="color: #889696">Pomodoros tuần</div>
+      </div>
+      <div class="glass-card p-4 text-center">
+        <div class="hw-title" style="color: #539df5">${total.focusTime}m</div>
+        <div class="hw-caption mt-1" style="color: #889696">Focus tuần</div>
+      </div>
+    </div>
+  `
+}
+
+function renderMonthSummary(monthData) {
+  return `
+    <div class="glass-card p-6 mt-4">
+      <div class="hw-label mb-4" style="color: #889696">TỔNG THÁNG</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="text-center">
+          <div class="hw-display" style="color: #4cf479; font-size: 32px">${monthData.tasksDone}</div>
+          <div class="hw-caption mt-1" style="color: #889696">Tasks Done</div>
+        </div>
+        <div class="text-center">
+          <div class="hw-display" style="color: #ffa42b; font-size: 32px">${monthData.pomodoros}</div>
+          <div class="hw-caption mt-1" style="color: #889696">Pomodoros</div>
+        </div>
+        <div class="text-center">
+          <div class="hw-display" style="color: #539df5; font-size: 32px">${monthData.focusTime}<span style="font-size: 16px">m</span></div>
+          <div class="hw-caption mt-1" style="color: #889696">Focus Time</div>
+        </div>
+        <div class="text-center">
+          <div class="hw-display" style="color: #e2e2e2; font-size: 32px">${monthData.totalDays}</div>
+          <div class="hw-caption mt-1" style="color: #889696">Ngày hoạt động</div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+export function initStatsChart(chartData) {
+  const canvas = document.getElementById('stats-chart')
+  if (!canvas) return null
+  if (typeof Chart === 'undefined') return null
+
+  try {
+    const ctx = canvas.getContext('2d')
+    const labels = chartData.map(d => d.label)
+
+    return new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Tasks Done',
+            data: chartData.map(d => d.tasksDone),
+            backgroundColor: 'rgba(76,244,121,0.25)',
+            borderColor: '#4cf479',
+            borderWidth: 1.5,
+            borderRadius: 4,
+          },
+          {
+            label: 'Pomodoros',
+            data: chartData.map(d => d.pomodoros),
+            backgroundColor: 'rgba(255,162,43,0.25)',
+            borderColor: '#ffa42b',
+            borderWidth: 1.5,
+            borderRadius: 4,
+          },
+          {
+            label: 'Focus Time (m)',
+            data: chartData.map(d => d.focusTime),
+            backgroundColor: 'rgba(83,157,245,0.2)',
+            borderColor: '#539df5',
+            borderWidth: 1.5,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#889696',
+              font: { family: 'Inter', size: 12 },
+              usePointStyle: true,
+              padding: 16,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#859583', font: { family: 'Inter', size: 12 } },
+            grid: { color: 'rgba(133,149,131,0.2)' },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#859583', font: { family: 'Inter', size: 12 }, stepSize: 1 },
+            grid: { color: 'rgba(133,149,131,0.2)' },
+          },
+        },
+      },
+    })
+  } catch {
+    return null
+  }
+}
+
 export function renderViewPlaceholder(viewId) {
   const titles = {
     dashboard: 'Dashboard',
