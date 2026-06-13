@@ -75,6 +75,7 @@ function wireFAB() {
 }
 
 function renderDashboardView() {
+  updateStreak()
   const section = document.getElementById('view-dashboard')
   const goal = getWeeklyGoal()
   const streak = getStreak()

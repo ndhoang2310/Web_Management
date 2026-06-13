@@ -51,8 +51,8 @@ export function updateStreak() {
   const d = getData()
   const today = todayStr()
   const yes = yesterdayStr()
-  const doneToday = d.tasks.some(t => t.createdAt.startsWith(today) && t.state === 'done')
-  const doneYes = d.tasks.some(t => t.createdAt.startsWith(yes) && t.state === 'done')
+  const doneToday = d.tasks.some(t => t.createdAt && t.createdAt.startsWith(today) && t.state === 'done')
+
   if (doneToday) {
     if (d.streak.lastDate === yes || !d.streak.lastDate) {
       d.streak.count++
@@ -62,6 +62,15 @@ export function updateStreak() {
       d.streak.lastDate = today
     }
     saveData(d)
+  } else if (d.streak.lastDate && d.streak.lastDate !== today) {
+    const last = new Date(d.streak.lastDate)
+    const now = new Date(today)
+    const diffDays = Math.floor((now - last) / 86400000)
+    if (diffDays >= 2) {
+      d.streak.count = 0
+      d.streak.lastDate = null
+      saveData(d)
+    }
   }
   return d.streak
 }
