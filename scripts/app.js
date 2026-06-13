@@ -176,14 +176,14 @@ function showTaskForm() {
   const btn = document.getElementById('btn-add-task')
   const formContent = `
     <div class="glass-card p-4 mt-3 space-y-3">
-      <input id="task-input" type="text" class="w-full px-4 py-3 rounded-lg bg-[#1a1c1c] border border-[#2a3333] text-[#e2e2e2] hw-body outline-none focus:border-[#4cf479] transition-colors" placeholder="Hôm nay bạn muốn làm gì?" autofocus>
+      <input id="task-input" type="text" class="w-full px-4 py-3 rounded-lg bg-[#141414] border border-[#333333] text-[#f7f9fa] hw-body outline-none focus:border-[#af50ff] transition-colors" placeholder="Hôm nay bạn muốn làm gì?" autofocus>
       <div class="flex items-center gap-2">
-        <input id="task-serves" type="checkbox" class="w-4 h-4 accent-[#4cf479]">
-        <label for="task-serves" class="hw-caption" style="color: #bbcbb8">Phục vụ mục tiêu tuần</label>
+        <input id="task-serves" type="checkbox" class="w-4 h-4 accent-[#af50ff]">
+        <label for="task-serves" class="hw-caption" style="color: #828384">Phục vụ mục tiêu tuần</label>
       </div>
       <div class="flex gap-2">
-        <button id="task-save" class="px-6 py-2 rounded-full bg-[#4cf479] text-[#003913] font-bold cursor-pointer transition-all hover:brightness-110 active:scale-95">Lưu</button>
-        <button id="task-cancel" class="px-6 py-2 rounded-full cursor-pointer transition-all hover:brightness-110" style="border: 1px solid rgba(133,149,131,0.3); color: #889696">Huỷ</button>
+        <button id="task-save" class="px-6 py-2 rounded-full bg-[#af50ff] text-[#f7f9fa] font-bold cursor-pointer transition-all hover:brightness-110 active:scale-95">Lưu</button>
+        <button id="task-cancel" class="px-6 py-2 rounded-full cursor-pointer transition-all hover:brightness-110" style="border: 1px solid rgba(255,255,255,0.12); color: #6b6b6b">Huỷ</button>
       </div>
     </div>
   `
@@ -222,8 +222,8 @@ function showTaskMenu(taskId) {
   popup.style.right = `${window.innerWidth - rect.right}px`
   popup.innerHTML = `
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.05)] transition-colors" id="menu-edit">
-      <span class="material-symbols-outlined" style="font-size: 18px; color: #889696">edit</span>
-      <span class="hw-body" style="color: #e2e2e2">Sửa</span>
+      <span class="material-symbols-outlined" style="font-size: 18px; color: #6b6b6b">edit</span>
+      <span class="hw-body" style="color: #f7f9fa">Sửa</span>
     </div>
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.05)] transition-colors" style="color: #f3727f" id="menu-delete">
       <span class="material-symbols-outlined" style="font-size: 18px">delete</span>
@@ -344,19 +344,19 @@ function showMorningTaskCapture() {
   container.classList.remove('hidden')
   container.innerHTML = `
     <div class="glass-card p-6">
-      <h3 class="hw-headline mb-4" style="color: #e2e2e2">Hôm nay bạn định làm gì?</h3>
+      <h3 class="hw-headline mb-4" style="color: #f7f9fa">Hôm nay bạn định làm gì?</h3>
       <div class="space-y-3" id="morning-task-list"></div>
       <div class="flex gap-2 mt-3">
-        <input id="morning-task-input" type="text" class="flex-1 px-4 py-3 rounded-lg bg-[#1a1c1c] border border-[#2a3333] text-[#e2e2e2] hw-body outline-none focus:border-[#4cf479] transition-colors" placeholder="Nhập task..." autofocus>
-        <button id="morning-task-add" class="px-4 py-3 rounded-lg bg-[#4cf479] text-[#003913] font-bold cursor-pointer transition-all hover:brightness-110">Thêm</button>
+        <input id="morning-task-input" type="text" class="flex-1 px-4 py-3 rounded-lg bg-[#141414] border border-[#333333] text-[#f7f9fa] hw-body outline-none focus:border-[#af50ff] transition-colors" placeholder="Nhập task..." autofocus>
+        <button id="morning-task-add" class="px-4 py-3 rounded-lg bg-[#af50ff] text-[#f7f9fa] font-bold cursor-pointer transition-all hover:brightness-110">Thêm</button>
       </div>
       ${goal ? `
         <label class="flex items-center gap-2 mt-3">
-          <input id="morning-serves" type="checkbox" class="w-4 h-4 accent-[#4cf479]">
-          <span class="hw-caption" style="color: #bbcbb8">Phục vụ mục tiêu: "${goal.text}"</span>
+          <input id="morning-serves" type="checkbox" class="w-4 h-4 accent-[#af50ff]">
+          <span class="hw-caption" style="color: #828384">Phục vụ mục tiêu: "${goal.text}"</span>
         </label>
       ` : ''}
-      <button id="morning-done" class="mt-4 w-full py-3 rounded-full bg-[#4cf479] text-[#003913] font-bold cursor-pointer transition-all hover:brightness-110 active:scale-95">Xong — về Dashboard</button>
+      <button id="morning-done" class="mt-4 w-full py-3 rounded-full bg-[#af50ff] text-[#f7f9fa] font-bold cursor-pointer transition-all hover:brightness-110 active:scale-95">Xong — về Dashboard</button>
     </div>
   `
   wireMorningTaskCapture()
@@ -376,10 +376,10 @@ function wireMorningTaskCapture() {
     input.focus()
     const list = document.getElementById('morning-task-list')
     if (list) {
-      list.innerHTML += `<div class="flex items-center gap-2 py-2" style="color: #4cf479">
+      list.innerHTML += `<div class="flex items-center gap-2 py-2" style="color: #af50ff">
         <span class="material-symbols-outlined" style="font-size: 18px">check</span>
-        <span class="hw-body" style="color: #e2e2e2">${text}</span>
-        ${serves ? '<span class="material-symbols-outlined" style="font-size: 14px; color: #4cf479; margin-left: auto">flag</span>' : ''}
+        <span class="hw-body" style="color: #f7f9fa">${text}</span>
+        ${serves ? '<span class="material-symbols-outlined" style="font-size: 14px; color: #af50ff; margin-left: auto">flag</span>' : ''}
       </div>`
     }
   }
