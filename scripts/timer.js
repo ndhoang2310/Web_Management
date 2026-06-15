@@ -7,10 +7,10 @@ export function createTimer(onTick, onComplete) {
     stop()
     remaining = seconds
     running = true
-    if (onTick) onTick(formatTime(remaining))
+    if (onTick) onTick(formatTime(remaining), remaining)
     interval = setInterval(() => {
       remaining--
-      if (onTick) onTick(formatTime(remaining))
+      if (onTick) onTick(formatTime(remaining), remaining)
       if (remaining <= 0) {
         stop()
         if (onComplete) onComplete()
@@ -29,7 +29,7 @@ export function createTimer(onTick, onComplete) {
       running = true
       interval = setInterval(() => {
         remaining--
-        if (onTick) onTick(formatTime(remaining))
+        if (onTick) onTick(formatTime(remaining), remaining)
         if (remaining <= 0) {
           stop()
           if (onComplete) onComplete()
@@ -90,7 +90,7 @@ export function createSequentialTimer(onFocusTick, onBreakTick, onRoundChange, o
       }
       if (onRoundChange) onRoundChange(state.currentRound, state.fullRounds + (state.lastFocus > 0 ? 1 : 0), 'focus', duration)
       timer = createTimer(
-        (time) => { if (onFocusTick) onFocusTick(time) },
+        (time, remaining) => { if (onFocusTick) onFocusTick(time, remaining) },
         () => {
           if (state.stopped) return
           if (state.currentRound <= state.fullRounds) {
@@ -105,7 +105,7 @@ export function createSequentialTimer(onFocusTick, onBreakTick, onRoundChange, o
     } else {
       if (onRoundChange) onRoundChange(state.currentRound, state.fullRounds + (state.lastFocus > 0 ? 1 : 0), 'break', 5)
       timer = createTimer(
-        (time) => { if (onBreakTick) onBreakTick(time) },
+        (time, remaining) => { if (onBreakTick) onBreakTick(time, remaining) },
         () => {
           if (state.stopped) return
           state.phase = 'focus'

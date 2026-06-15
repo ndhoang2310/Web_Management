@@ -2,8 +2,8 @@ import {
   renderLayout, renderViewPlaceholder, updateActiveNav, renderDashboard,
   renderMorningView, renderFocusView, renderFAB, renderRewardBox,
   renderStatsView, initStatsChart,
-  updateTimerDisplay, updateFocusStats, updateFocusRoundInfo,
-  hideFocusRoundInfo, showFocusError, hideFocusError
+  updateTimerDisplay, updateTimerRing, updateFocusStats, updateFocusRoundInfo,
+  hideFocusRoundInfo, showFocusError, hideFocusError, renderSettingsModal
 } from './ui.js'
 import {
   getWeeklyGoal, getStreak, getTodayTasks, getTodayStats,
@@ -16,6 +16,7 @@ import {
   getData, saveData
 } from './storage.js'
 import { createTimer, createSequentialTimer, formatTime } from './timer.js'
+import { initLeaves } from './leaves.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   renderLayout()
@@ -24,7 +25,28 @@ document.addEventListener('DOMContentLoaded', () => {
   wireFAB()
   navigate('dashboard')
   wireNavClicks()
+  wireCardTilt()
+  wireSettingsBtn()
+  initLeaves()
 })
+
+function initDewdrops() {
+  document.querySelectorAll('.glass-card, .hero-card').forEach(card => {
+    card.querySelectorAll('.dew').forEach(d => d.remove())
+    const rect = card.getBoundingClientRect()
+    if (rect.width < 50 || rect.height < 50) return
+    const count = Math.random() < 0.3 ? 1 : Math.random() < 0.6 ? 2 : 3
+    for (let i = 0; i < count; i++) {
+      const size = 3.5 + Math.random() * 4.5
+      const x = 4 + Math.random() * (rect.width - size - 8)
+      const y = 2 + Math.random() * (rect.height * 0.35)
+      const dew = document.createElement('div')
+      dew.className = 'dew'
+      dew.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px`
+      card.appendChild(dew)
+    }
+  })
+}
 
 function renderView(viewId) {
   if (viewId === 'dashboard') {
@@ -85,12 +107,11 @@ function renderDashboardView() {
   const dashboardContent = renderDashboard(goal, streak, tasks, stats)
   section.innerHTML = dashboardContent
   if (rewardHtml) {
-    const rightCol = section.querySelector('.hw-col-4')
-    if (rightCol) {
+    const sideCol = section.querySelector('.side-column')
+    if (sideCol) {
       const rewardDiv = document.createElement('div')
-      rewardDiv.className = 'mt-6'
       rewardDiv.innerHTML = rewardHtml
-      rightCol.appendChild(rewardDiv)
+      sideCol.appendChild(rewardDiv)
     }
   }
   wireDashboard()
@@ -106,13 +127,16 @@ function wireDashboard() {
   document.querySelectorAll('.task-check').forEach(el => {
     el.addEventListener('click', e => {
       e.stopPropagation()
-      const taskId = el.closest('.task-item').dataset.taskId
+      const taskEl = el.closest('.task-item')
+      const taskId = taskEl.dataset.taskId
       const task = getTodayTasks().find(t => t.id === taskId)
       if (task) {
         const newState = task.state === 'done' ? 'pending' : 'done'
-        updateTask(taskId, { state: newState })
+        const updated = updateTask(taskId, { state: newState })
         updateStreak()
-        renderDashboardView()
+        patchTaskElement(taskEl, updated)
+        patchDashboardStats()
+        patchRewardBox()
       }
     })
   })
@@ -125,8 +149,8 @@ function wireDashboard() {
       const task = getTodayTasks().find(t => t.id === taskId)
       if (task && task.state !== 'done') {
         const newState = task.state === 'doing' ? 'pending' : 'doing'
-        updateTask(taskId, { state: newState })
-        renderDashboardView()
+        const updated = updateTask(taskId, { state: newState })
+        patchTaskElement(el, updated)
       }
     })
   })
@@ -147,6 +171,66 @@ function wireDashboard() {
     navigate('focus')
     setTimeout(startFocusFromOutside, 100)
   })
+}
+
+function patchTaskElement(el, task) {
+  const isDoing = task.state === 'doing'
+  const isDone = task.state === 'done'
+  const icon = el.querySelector('.task-check')
+  const text = el.querySelector('.task-text')
+  if (!icon || !text) return
+  const newIcon = isDone ? 'check_circle' : (isDoing ? 'play_circle' : 'radio_button_unchecked')
+  const iconColor = isDone ? '#8fdc7d' : (isDoing ? '#8fdc7d' : 'rgba(244,241,223,0.46)')
+  icon.textContent = newIcon
+  icon.style.color = iconColor
+  icon.style.fontVariationSettings = `'FILL' ${isDone ? 1 : 0}`
+  text.style.color = isDone ? 'rgba(244,241,223,0.54)' : '#f4f1df'
+  text.style.textDecoration = isDone ? 'line-through' : ''
+  let bgStyle = ''
+  if (isDoing) bgStyle = 'background: rgba(143,220,125,0.10); border: 1px solid rgba(143,220,125,0.22); border-left: 3px solid #8fdc7d; border-radius: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 14px rgba(143,220,125,0.10)'
+  else if (isDone) bgStyle = 'background: rgba(4,10,8,0.12); border: 1px solid rgba(226,244,213,0.06); border-radius: 12px; opacity: 0.50'
+  else bgStyle = 'background: rgba(8,20,14,0.14); border: 1px solid rgba(226,244,213,0.10); border-radius: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03)'
+  el.style.cssText = bgStyle
+}
+
+function patchDashboardStats() {
+  const stats = getTodayStats()
+  const streak = getStreak()
+  const streakCount = document.querySelector('.hero-card .hw-display')
+  if (streakCount) streakCount.textContent = `Day ${streak.count}`
+  const statCards = document.querySelectorAll('.hero-card .hw-title')
+  if (statCards[0]) statCards[0].innerHTML = stats.tasksDone
+  if (statCards[1]) statCards[1].innerHTML = stats.pomodoros
+  if (statCards[2]) statCards[2].innerHTML = `${stats.focusTime}<span style="font-size:14px;color:rgba(244,241,223,0.54)">m</span>`
+  const sideTitles = document.querySelectorAll('.secondary-card .hw-title')
+  if (sideTitles[0]) sideTitles[0].textContent = stats.tasksDone
+  if (sideTitles[1]) sideTitles[1].textContent = stats.pomodoros
+  if (sideTitles[2]) sideTitles[2].textContent = stats.focusTime + 'm'
+  const taskSection = document.querySelector('.task-panel')
+  if (taskSection) {
+    const pendingCount = getTodayTasks().filter(t => t.state !== 'done').length
+    const countLabel = taskSection.querySelector('.hw-headline .hw-body')
+    if (countLabel) countLabel.textContent = `(${pendingCount} còn lại)`
+  }
+}
+
+function patchRewardBox() {
+  const tasks = getTodayTasks()
+  const hasDone = tasks.some(t => t.state === 'done')
+  const sideCol = document.querySelector('.side-column')
+  const existingReward = sideCol?.querySelector('.glass-card:has(#btn-reward)')
+  if (hasDone && !existingReward) {
+    const rewardHtml = renderRewardBox(tasks)
+    if (rewardHtml) {
+      const rewardDiv = document.createElement('div')
+      rewardDiv.innerHTML = rewardHtml
+      sideCol?.appendChild(rewardDiv)
+      const btn = document.getElementById('btn-reward')
+      if (btn) btn.addEventListener('click', claimReward)
+    }
+  } else if (!hasDone && existingReward) {
+    existingReward.remove()
+  }
 }
 
 function claimReward() {
@@ -176,11 +260,12 @@ function showTaskForm() {
   const btn = document.getElementById('btn-add-task')
   const formContent = `
     <div class="glass-card p-4 mt-3 space-y-3">
-      <input id="task-input" type="text" class="ghost-input w-full" style="border-style: solid" placeholder="Hôm nay bạn muốn làm gì?" autofocus>
+      <input id="task-input" type="text" class="ghost-input w-full" style="border-style: solid" placeholder="Hôm nay bạn muốn làm gì?" autofocus autocomplete="off">
       <div class="flex items-center gap-2">
-        <input id="task-serves" type="checkbox" style="accent-color: #af50ff; width: 16px; height: 16px">
-        <label for="task-serves" class="hw-caption" style="color: #8a8a8a">Phục vụ mục tiêu tuần</label>
+        <input id="task-serves" type="checkbox" style="accent-color: #8fdc7d; width: 16px; height: 16px">
+        <label for="task-serves" class="hw-caption" style="color: rgba(244,241,223,0.54)">Phục vụ mục tiêu tuần</label>
       </div>
+      <div id="task-form-error" class="hw-caption" style="color: #f3727f; display: none">Vui lòng nhập tên task</div>
       <div class="flex gap-2">
         <button id="task-save" class="btn-pill" style="padding: 8px 24px; font-size: 13px">Lưu</button>
         <button id="task-cancel" class="btn-ghost" style="padding: 8px 24px; font-size: 13px">Huỷ</button>
@@ -193,6 +278,7 @@ function showTaskForm() {
   btn.parentNode.insertBefore(form, btn.nextSibling)
   btn.style.display = 'none'
   document.getElementById('task-input').focus()
+  setTimeout(() => form.querySelector('.glass-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
 
   document.getElementById('task-save').addEventListener('click', () => {
     const input = document.getElementById('task-input')
@@ -201,12 +287,31 @@ function showTaskForm() {
       createTask(input.value.trim(), serves)
       updateStreak()
       renderDashboardView()
+    } else {
+      showTaskFormError()
     }
   })
   document.getElementById('task-cancel').addEventListener('click', () => {
     form.remove()
     btn.style.display = ''
   })
+}
+
+function showTaskFormError() {
+  const card = document.querySelector('#task-form .glass-card')
+  const err = document.getElementById('task-form-error')
+  const input = document.getElementById('task-input')
+  if (err) err.style.display = 'block'
+  if (card) {
+    card.classList.remove('shake')
+    void card.offsetWidth
+    card.classList.add('shake')
+  }
+  if (input) {
+    input.style.borderColor = '#f3727f'
+    input.focus()
+    setTimeout(() => { input.style.borderColor = '' }, 2000)
+  }
 }
 
 function showTaskMenu(taskId) {
@@ -217,17 +322,17 @@ function showTaskMenu(taskId) {
   const rect = item.querySelector('.task-menu').getBoundingClientRect()
 
   const popup = document.createElement('div')
-  popup.className = 'task-menu-popup fixed z-50 glass-card p-2 min-w-[140px]'
+  popup.className = 'task-menu-popup fixed z-50 p-2 min-w-[140px]'
   popup.style.top = `${rect.bottom + 4}px`
   popup.style.right = `${window.innerWidth - rect.right}px`
   popup.innerHTML = `
-    <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors" style="color: #f7f9fa" id="menu-edit"
-         onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
-      <span class="material-symbols-outlined" style="font-size: 18px; color: #8a8a8a">edit</span>
-      <span class="hw-body" style="color: #f7f9fa">Sửa</span>
+    <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors" style="color: #f4f1df" id="menu-edit"
+         onmouseover="this.style.background='rgba(226,244,213,0.06)'" onmouseout="this.style.background='transparent'">
+      <span class="material-symbols-outlined" style="font-size: 18px; color: rgba(244,241,223,0.54)">edit</span>
+      <span class="hw-body" style="color: #f4f1df">Sửa</span>
     </div>
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors" style="color: #f3727f" id="menu-delete"
-         onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+         onmouseover="this.style.background='rgba(226,244,213,0.06)'" onmouseout="this.style.background='transparent'">
       <span class="material-symbols-outlined" style="font-size: 18px">delete</span>
       <span class="hw-body">Xoá</span>
     </div>
@@ -265,8 +370,19 @@ function closeMenu() {
 
 /* ── Morning Routine ── */
 
+let morningTotalSeconds = 0
+
+function updateMorningRing(remaining) {
+  if (morningTotalSeconds > 0) {
+    updateTimerRing('morning-ring-progress', remaining, morningTotalSeconds)
+  }
+}
+
 let morningTimer = createTimer(
-  (time) => updateTimerDisplay('morning-time', time),
+  (time, remaining) => {
+    updateTimerDisplay('morning-time', time)
+    updateMorningRing(remaining)
+  },
   onMorningComplete
 )
 
@@ -288,11 +404,13 @@ function wireMorningView() {
       const settings = getMorningSettings()
       settings.timerMinutes = val
       saveMorningSettings(settings)
+      morningTotalSeconds = val * 60
       if (morningTimer.isRunning()) {
         morningTimer.stop()
         morningTimer.start(val * 60)
       } else {
         updateTimerDisplay('morning-time', `${String(val).padStart(2, '0')}:00`)
+        updateTimerRing('morning-ring-progress', val * 60, val * 60)
       }
     })
   }
@@ -317,6 +435,7 @@ function wireMorningView() {
     startBtn.addEventListener('click', () => {
       const settings = getMorningSettings()
       const minutes = settings.timerMinutes || 15
+      morningTotalSeconds = minutes * 60
       startBtn.classList.add('hidden')
       stopBtn.classList.remove('hidden')
       morningTimer.start(minutes * 60)
@@ -325,9 +444,12 @@ function wireMorningView() {
 
   if (stopBtn) {
     stopBtn.addEventListener('click', () => {
+      if (morningTimer.isRunning() && !confirm('Dừng buổi sáng? Thời gian còn lại sẽ bị mất.')) return
+      const settings = getMorningSettings()
       morningTimer.stop()
       stopBtn.classList.add('hidden')
       startBtn.classList.remove('hidden')
+      updateTimerRing('morning-ring-progress', settings.timerMinutes * 60, settings.timerMinutes * 60)
       showMorningTaskCapture()
     })
   }
@@ -336,6 +458,8 @@ function wireMorningView() {
 function onMorningComplete() {
   document.getElementById('btn-morning-stop')?.classList.add('hidden')
   document.getElementById('btn-morning-start')?.classList.remove('hidden')
+  const settings = getMorningSettings()
+  updateTimerRing('morning-ring-progress', settings.timerMinutes * 60, settings.timerMinutes * 60)
   showMorningTaskCapture()
 }
 
@@ -346,7 +470,7 @@ function showMorningTaskCapture() {
   container.classList.remove('hidden')
   container.innerHTML = `
     <div class="glass-card p-6">
-      <h3 class="hw-headline mb-4" style="color: #f7f9fa">Hôm nay bạn định làm gì?</h3>
+      <h3 class="hw-headline mb-4" style="color: #f4f1df">Hôm nay bạn định làm gì?</h3>
       <div class="space-y-3" id="morning-task-list"></div>
       <div class="flex gap-2 mt-3">
         <input id="morning-task-input" type="text" class="ghost-input flex-1" style="border-style: solid" placeholder="Nhập task..." autofocus>
@@ -354,8 +478,8 @@ function showMorningTaskCapture() {
       </div>
       ${goal ? `
         <label class="flex items-center gap-2 mt-3">
-          <input id="morning-serves" type="checkbox" style="accent-color: #af50ff; width: 16px; height: 16px">
-          <span class="hw-caption" style="color: #8a8a8a">Phục vụ mục tiêu: "${goal.text}"</span>
+          <input id="morning-serves" type="checkbox" style="accent-color: #8fdc7d; width: 16px; height: 16px">
+          <span class="hw-caption" style="color: rgba(244,241,223,0.54)">Phục vụ mục tiêu: "${goal.text}"</span>
         </label>
       ` : ''}
       <button id="morning-done" class="btn-pill mt-4 w-full" style="padding: 12px 24px">Xong — về Dashboard</button>
@@ -378,10 +502,10 @@ function wireMorningTaskCapture() {
     input.focus()
     const list = document.getElementById('morning-task-list')
     if (list) {
-      list.innerHTML += `<div class="flex items-center gap-2 py-2" style="color: #af50ff">
+      list.innerHTML += `<div class="flex items-center gap-2 py-2" style="color: #8fdc7d">
         <span class="material-symbols-outlined" style="font-size: 18px">check</span>
-        <span class="hw-body" style="color: #f7f9fa">${text}</span>
-        ${serves ? '<span class="material-symbols-outlined" style="font-size: 14px; color: #af50ff; margin-left: auto">flag</span>' : ''}
+        <span class="hw-body" style="color: #f4f1df">${text}</span>
+        ${serves ? '<span class="material-symbols-outlined" style="font-size: 14px; color: #8fdc7d; margin-left: auto">flag</span>' : ''}
       </div>`
     }
   }
@@ -397,14 +521,21 @@ function wireMorningTaskCapture() {
 
 /* ── Focus Timer — Sequential Pomodoro ── */
 
+let focusPhaseSeconds = 0
+
 let sequentialTimer = createSequentialTimer(
-  // onFocusTick
-  (time) => { updateTimerDisplay('focus-time', time) },
-  // onBreakTick
-  (time) => { updateTimerDisplay('focus-time', time) },
-  // onRoundChange
+  (time, remaining) => {
+    updateTimerDisplay('focus-time', time)
+    updateTimerRing('focus-ring-progress', remaining, focusPhaseSeconds)
+  },
+  (time, remaining) => {
+    updateTimerDisplay('focus-time', time)
+    updateTimerRing('focus-ring-progress', remaining, focusPhaseSeconds)
+  },
   (current, total, phase, minutes) => {
+    focusPhaseSeconds = (phase === 'break' ? 5 : minutes) * 60
     updateFocusRoundInfo(current, total, phase, minutes)
+    updateRingColor(phase)
   },
   // onSessionComplete
   () => {
@@ -415,6 +546,8 @@ let sequentialTimer = createSequentialTimer(
     if (pause) pause.classList.add('hidden')
     if (stop) stop.classList.add('hidden')
     hideFocusRoundInfo()
+    updateTimerRing('focus-ring-progress', 25 * 60, 25 * 60)
+    updateRingColor('focus')
     const e = document.getElementById('focus-phase-label')
     if (e) e.textContent = 'FOCUS'
     updateTimerDisplay('focus-time', '25:00')
@@ -452,6 +585,18 @@ function renderFocusViewFn() {
   wireFocusView()
 }
 
+function updateRingColor(phase) {
+  const ring = document.getElementById('focus-ring-progress')
+  if (!ring) return
+  if (phase === 'break') {
+    ring.classList.remove('focus-ring')
+    ring.classList.add('break-ring')
+  } else {
+    ring.classList.remove('break-ring')
+    ring.classList.add('focus-ring')
+  }
+}
+
 function wireFocusView() {
   const start = document.getElementById('btn-focus-start')
   const pause = document.getElementById('btn-focus-pause')
@@ -480,18 +625,22 @@ function wireFocusView() {
     }
   })
   stop.addEventListener('click', () => {
-    sequentialTimer.stop()
-    hideFocusRoundInfo()
-    const e = document.getElementById('focus-phase-label')
-    if (e) e.textContent = 'FOCUS'
-    updateTimerDisplay('focus-time', '25:00')
-    start.textContent = 'Bắt đầu'
-    start.classList.remove('hidden')
-    pause.classList.add('hidden')
-    stop.classList.add('hidden')
-    hideFocusError()
-    const config = getFocusConfig()
-    if (input) input.value = config.totalMinutes
+    if (!sequentialTimer.getState().isRunning || confirm('Dừng Pomodoro? Tiến trình hiện tại sẽ bị mất.')) {
+      sequentialTimer.stop()
+      hideFocusRoundInfo()
+      updateTimerRing('focus-ring-progress', 25 * 60, 25 * 60)
+      updateRingColor('focus')
+      const e = document.getElementById('focus-phase-label')
+      if (e) e.textContent = 'FOCUS'
+      updateTimerDisplay('focus-time', '25:00')
+      start.textContent = 'Bắt đầu'
+      start.classList.remove('hidden')
+      pause.classList.add('hidden')
+      stop.classList.add('hidden')
+      hideFocusError()
+      const config = getFocusConfig()
+      if (input) input.value = config.totalMinutes
+    }
   })
 }
 
@@ -516,6 +665,8 @@ function startSequentialTimer() {
   }
   hideFocusError()
 
+  focusPhaseSeconds = 25 * 60
+  updateRingColor('focus')
   document.getElementById('focus-phase-label').textContent = 'FOCUS'
   sequentialTimer.start(total)
   start.classList.add('hidden')
@@ -526,6 +677,8 @@ function startSequentialTimer() {
 // Quick start from FAB or Dashboard CTA
 function startFocusFromOutside() {
   const config = getFocusConfig()
+  focusPhaseSeconds = 25 * 60
+  updateRingColor('focus')
   document.getElementById('focus-phase-label').textContent = 'FOCUS'
   sequentialTimer.start(config.totalMinutes)
 
@@ -569,5 +722,84 @@ function wireStatsView() {
       statsMode = btn.dataset.mode
       renderStatsViewFn()
     })
+  })
+}
+
+/* ── Card light beam sweep ── */
+function wireCardTilt() {
+  const app = document.getElementById('app')
+  const SELECTOR = '.glass-card, .hero-card, .secondary-card'
+
+  app.addEventListener('mousemove', e => {
+    const card = e.target.closest(SELECTOR)
+    if (!card) return
+    const rect = card.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width
+    const py = (e.clientY - rect.top) / rect.height
+    const beam = (40 + (px + py) * 30).toFixed(0)
+    card.style.setProperty('--beam', beam + '%')
+  })
+}
+
+/* ── Settings Modal ── */
+function wireSettingsBtn() {
+  document.addEventListener('click', e => {
+    if (e.target.closest('#btn-settings')) showSettingsModal()
+  })
+}
+
+function showSettingsModal() {
+  const existing = document.getElementById('settings-overlay')
+  if (existing) { existing.remove(); return }
+  document.body.insertAdjacentHTML('beforeend', renderSettingsModal())
+  wireSettingsModal()
+}
+
+function wireSettingsModal() {
+  document.getElementById('settings-close').addEventListener('click', () => {
+    document.getElementById('settings-overlay')?.remove()
+  })
+  document.getElementById('settings-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) document.getElementById('settings-overlay')?.remove()
+  })
+
+  document.getElementById('settings-export').addEventListener('click', () => {
+    const data = JSON.parse(localStorage.getItem('hoangweb') || '{}')
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hoangweb-backup-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  })
+
+  document.getElementById('settings-import').addEventListener('click', () => {
+    document.getElementById('settings-import-file').click()
+  })
+
+  document.getElementById('settings-import-file').addEventListener('change', e => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result)
+        localStorage.setItem('hoangweb', JSON.stringify(data))
+        alert('Dữ liệu đã được khôi phục! Trang sẽ tải lại.')
+        location.reload()
+      } catch {
+        alert('File không hợp lệ.')
+      }
+    }
+    reader.readAsText(file)
+  })
+
+  document.getElementById('settings-reset').addEventListener('click', () => {
+    if (confirm('Bạn có chắc muốn xoá TẤT CẢ dữ liệu? Hành động này không thể hoàn tác.')) {
+      localStorage.clear()
+      alert('Đã xoá tất cả dữ liệu. Trang sẽ tải lại.')
+      location.reload()
+    }
   })
 }

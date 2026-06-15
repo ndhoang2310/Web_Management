@@ -15,24 +15,24 @@
             sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
           },
           colors: {
-            void: '#090909',
-            'bone-white': '#f7f9fa',
-            ash: '#f0f0f0',
-            slate: '#6b6b6b',
-            graphite: '#454545',
-            smoke: '#828384',
-            iron: '#333333',
-            cinder: '#423738',
-            iris: '#af50ff',
-            plum: '#7f56d9',
-            aubergine: '#271635',
-            'storm-gray': '#475467',
-            'lavender-wash': '#e1bdff',
+            void: '#07110c',
+            'bone-white': '#f4f1df',
+            ash: '#e2f4d5',
+            slate: 'rgba(244,241,223,0.42)',
+            graphite: 'rgba(244,241,223,0.36)',
+            smoke: 'rgba(244,241,223,0.46)',
+            iron: 'rgba(226,244,213,0.12)',
+            cinder: '#173622',
+            iris: '#8fdc7d',
+            plum: '#2f8f4e',
+            aubergine: '#0b1f14',
+            'storm-gray': 'rgba(244,241,223,0.48)',
+            'lavender-wash': '#e2ffc4',
             negative: '#f3727f',
-            warning: '#ffa42b',
-            announcement: '#539df5',
-            'accent-blue': '#57b8ff',
-            'accent-pink': '#ff5fb7',
+            warning: '#f2b85b',
+            announcement: '#8fffe0',
+            'accent-bright': '#b7ff8a',
+            'accent-mint': '#8fffe0',
           },
         },
       },
@@ -46,7 +46,8 @@
   <link rel="stylesheet" href="styles/base.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 </head>
-<body class="bg-[#090909] text-[#f7f9fa] font-sans">
+<body class="bg-[#07110c] text-[#f4f1df] font-sans">
+  <canvas id="leaves-canvas" aria-hidden="true"></canvas>
   <div id="app"></div>
 
   <script type="module" src="scripts/storage.js"></script>

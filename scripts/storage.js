@@ -23,12 +23,6 @@ export function setWeeklyGoal(text) {
   return d.weeklyGoal
 }
 
-export function clearWeeklyGoal() {
-  const d = getData()
-  d.weeklyGoal = null
-  saveData(d)
-}
-
 export function checkWeekReset() {
   const d = getData()
   if (!d.weeklyGoal) return false
@@ -75,15 +69,10 @@ export function updateStreak() {
   return d.streak
 }
 
-function isToday(s) { return s.startsWith(todayStr()) }
 
 export function getTodayTasks() {
   const t = todayStr()
   return getData().tasks.filter(task => task.createdAt.startsWith(t))
-}
-
-export function getAllTasks() {
-  return getData().tasks
 }
 
 export function createTask(text, servesGoal = false) {
